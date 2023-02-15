@@ -21,6 +21,10 @@ app.use((req, res, next) => {
 app.use("/private", privateRoutes);
 app.use("/auth", authRoutes);
 
+app.get('/', (req, res) => {
+    res.send("ok")
+})
+
 // error handling
 app.use((error, req, res, next) => {
   const status = error.statusCode || 500;

@@ -15,8 +15,4 @@ router.post('/forgotpass/createcode', createResetCode)
 
 router.put('/forgotpass/resetpass', useValidation(resetPassValidationSchema), passwordReset)
 
-router.get('/ok', (req, res) => {
-    res.send("hi")
-})
-
 module.exports = router;
