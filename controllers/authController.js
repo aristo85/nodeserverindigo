@@ -4,6 +4,7 @@ const { config } = require("../config");
 const { sendPasswordResetEmail } = require("../utils/services/mailer");
 const ResetUser = require("../models/resetPassModel");
 const User = require("../models/userModel")
+// const User = require("../models/userModel")
 
 exports.singup = async (req, res, next) => {
   const { username, email, password } = req.body;
