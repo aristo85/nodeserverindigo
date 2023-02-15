@@ -1,15 +1,15 @@
-import { hash, compare } from "bcryptjs";
-import { sign } from "jsonwebtoken";
-import { config } from "../config";
-import { sendPasswordResetEmail } from "../utils/services/mailer";
-import { findOneAndUpdate, findOne, findOneAndRemove } from "../models/resetPassModel";
-import User, { findOne as _findOne } from "../models/userModel";
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const { config } = require("../config");
+const { sendPasswordResetEmail } = require("../utils/services/mailer");
+const ResetUser = require("../models/resetPassModel");
+const User = require("../models/userModel")
 
-export async function singup(req, res, next) {
+exports.singup = async (req, res, next) => {
   const { username, email, password } = req.body;
 
   try {
-    const isUser = await _findOne({ email });
+    const isUser = await User.findOne({ email });
 
     if (isUser) {
       const error = new Error("This user already exist");
@@ -17,10 +17,10 @@ export async function singup(req, res, next) {
       throw error;
     }
 
-    const hashedPass = await hash(password, 12);
+    const hashedPass = await bcrypt.hash(password, 12);
     const user = new User({ username, email, password: hashedPass });
     const result = await user.save();
-    const token = sign(
+    const token = jwt.sign(
       {
         email: result.email,
         userId: result._id.toString(),
@@ -33,12 +33,12 @@ export async function singup(req, res, next) {
     error.statusCode = 500;
     next(error);
   }
-}
+};
 
-export async function login(req, res, next) {
+exports.login = async (req, res, next) => {
   const { email, password } = req.body;
   try {
-    const foundUser = await _findOne({ email });
+    const foundUser = await User.findOne({ email });
 
     if (!foundUser) {
       const error = new Error("A user with this email could not be found.");
@@ -46,7 +46,7 @@ export async function login(req, res, next) {
       throw error;
     }
 
-    const isCorrectPass = await compare(password, foundUser.password);
+    const isCorrectPass = await bcrypt.compare(password, foundUser.password);
 
     if (!isCorrectPass) {
       const error = new Error("Wrong password!");
@@ -54,7 +54,7 @@ export async function login(req, res, next) {
       throw error;
     }
 
-    const token = sign(
+    const token = jwt.sign(
       {
         email: foundUser.email,
         userId: foundUser._id.toString(),
@@ -68,11 +68,11 @@ export async function login(req, res, next) {
     error.statusCode = error.statusCode ?? 500;
     next(error);
   }
-}
+};
 
-export async function createResetCode(req, res, next) {
+exports.createResetCode = async (req, res, next) => {
   try {
-    const foundUser = await _findOne({ email: req.body.email });
+    const foundUser = await User.findOne({ email: req.body.email });
 
     if (!foundUser) {
       const error = new Error("A user with this email could not be found.");
@@ -81,7 +81,7 @@ export async function createResetCode(req, res, next) {
     }
 
     const randomstring = Math.floor(100000 + Math.random() * 900000);
-    const resetUser = await findOneAndUpdate(
+    const resetUser = await ResetUser.findOneAndUpdate(
       { email: foundUser.email },
       {
         code: randomstring,
@@ -99,13 +99,13 @@ export async function createResetCode(req, res, next) {
     error.statusCode = error.statusCode ?? 500;
     next(error);
   }
-}
+};
 
-export async function passwordReset(req, res, next) {
+exports.passwordReset = async (req, res, next) => {
   const { email, newPassword, code } = req.body;
 
   try {
-    const findResetcodeByEmail = await findOne({ email });
+    const findResetcodeByEmail = await ResetUser.findOne({ email });
 
     if (+findResetcodeByEmail?.code !== +code) {
       const error = new Error("Invalid reset code");
@@ -113,18 +113,18 @@ export async function passwordReset(req, res, next) {
       throw error;
     }
 
-    const foundUser = await _findOne({ email });
+    const foundUser = await User.findOne({ email });
 
     if (!foundUser) {
       const error = new Error("A user with this email could not be found.");
       error.statusCode = 401;
       throw error;
     }
-    const hashedPass = await hash(newPassword, 12);
+    const hashedPass = await bcrypt.hash(newPassword, 12);
     foundUser.password = hashedPass;
 
     const updatedUser = await foundUser.save();
-    await findOneAndRemove({ email, code });
+    await ResetUser.findOneAndRemove({ email, code });
 
     res.status(200).json({
       message: "password updated successfully",
@@ -135,4 +135,4 @@ export async function passwordReset(req, res, next) {
     error.statusCode = error.statusCode ?? 500;
     next(error);
   }
-}
+};
