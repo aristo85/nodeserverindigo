@@ -6,7 +6,7 @@
 
 ### `npm install`
 
-5. run thr project
+5. run the project
 
 ### `npm start`
 
