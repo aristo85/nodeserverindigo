@@ -1,4 +1,3 @@
-// const User = require("../models/userModel");
 import User from "../models/userModel";
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
