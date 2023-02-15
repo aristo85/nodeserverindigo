@@ -16,7 +16,8 @@ const transport = nodemailer.createTransport({
 });
 
 exports.sendPasswordResetEmail = async (email, code) => {
-    try {
+  console.log('first', email, user, code, service, pass)
+  try {
         return transport
             .sendMail({
                 from: user,
