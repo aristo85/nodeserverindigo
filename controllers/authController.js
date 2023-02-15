@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const { config } = require("../config");
 
 exports.singup = async (req, res, next) => {
+  console.log('first', req.body)
   const { username, email, password } = req.body;
 
   try {

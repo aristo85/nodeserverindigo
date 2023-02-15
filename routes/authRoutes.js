@@ -9,4 +9,8 @@ router.put('/signup', useValidation(singupValidationSchema), singup)
 
 router.post('/login', login)
 
+router.get('/ok', (req, res) => {
+    res.send('express...')
+})
+
 module.exports = router;
